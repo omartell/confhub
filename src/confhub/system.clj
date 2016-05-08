@@ -8,11 +8,13 @@
             [meta-merge.core :refer [meta-merge]]
             [ring.component.jetty :refer [jetty-server]]
             [ring.middleware.defaults :refer [wrap-defaults site-defaults]]
+            [ring.middleware.format :refer [wrap-restful-format]]
             [ring.middleware.webjars :refer [wrap-webjars]]
-            [confhub.endpoint.example :refer [example-endpoint]]))
+            [confhub.endpoint.pages :refer [pages-endpoint]]))
 
 (def base-config
   {:app {:middleware [[wrap-not-found :not-found]
+                      [wrap-restful-format]
                       [wrap-webjars]
                       [wrap-defaults :defaults]
                       [wrap-route-aliases :aliases]]
@@ -25,8 +27,8 @@
     (-> (component/system-map
          :app  (handler-component (:app config))
          :http (jetty-server (:http config))
-         :example (endpoint-component example-endpoint))
+         :pages (endpoint-component pages-endpoint))
         (component/system-using
          {:http [:app]
-          :app  [:example]
-          :example []}))))
+          :app  [:pages]
+          :pages []}))))

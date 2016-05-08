@@ -9,7 +9,9 @@
                  [environ "1.0.2"]
                  [meta-merge "0.1.1"]
                  [ring "1.4.0"]
+                 [ring-middleware-format "0.7.0"]
                  [ring/ring-defaults "0.2.0"]
+                 [ring/ring-mock "0.3.0"]
                  [ring-jetty-component "0.3.1"]
                  [ring-webjars "0.1.1"]
                  [org.slf4j/slf4j-nop "1.7.14"]
@@ -32,7 +34,8 @@
    :uberjar {:aot :all}
    :profiles/dev  {}
    :profiles/test {}
-   :project/dev   {:dependencies [[reloaded.repl "0.2.1"]
+   :project/dev   {:dependencies [[org.clojure/data.json "0.2.6"]
+                                  [reloaded.repl "0.2.1"]
                                   [org.clojure/tools.namespace "0.2.11"]
                                   [org.clojure/tools.nrepl "0.2.12"]
                                   [eftest "0.1.1"]
