@@ -27,8 +27,16 @@
     (-> (response {:error "Invalid data"})
         (status 422))))
 
+(defn delete-page-config [db-spec id]
+  (let [deleted (db/delete-page-config db-spec id)]
+    (if (> (first deleted) 0)
+      (-> (response "")
+          (status 200))
+      (unknown-resource))))
+
 (defn pages-endpoint [{{db-spec :spec} :db :as config}]
   (routes
-   (GET "/pages/:id" [id] (get-page-config db-spec id))
    (POST "/pages" {{page :page} :params} (create-page-config db-spec page))
+   (GET "/pages/:id" [id] (get-page-config db-spec id))
+   (DELETE "/pages/:id" [id] (delete-page-config db-spec id))
    (not-found (unknown-resource))))

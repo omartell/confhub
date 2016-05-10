@@ -18,6 +18,9 @@
                 {:page_id (:id page-config)
                  :configuration (map->pgjson page-config)}))
 
+(defn delete-page-config [spec id]
+  (jdbc/delete! spec :page_configurations ["page_id = ?" id]))
+
 (defn find-page-config [spec id]
   (some-> (jdbc/query spec
                       ["SELECT * FROM page_configurations WHERE page_id = ?" id])

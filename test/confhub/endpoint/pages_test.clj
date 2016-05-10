@@ -67,8 +67,21 @@
       (let [response (handler (-> (mock/request :get "/pages/old-news")
                                   (mock/header "Accept" "application/json")))]
         (is (= 404 (:status response)))
-        (is (= "application/json; charset=utf-8"
-               (-> response :headers (get "Content-Type"))))
+        (is (= {:error "Not Found"}
+               (-> response
+                   parse-body)))))
+
+    (testing "returns successful response when deleting an existing page configuration"
+      (create-page-config handler (assoc-in page-config [:page :id] "breaking-news"))
+
+      (let [response (handler (-> (mock/request :delete "/pages/breaking-news")
+                                  (mock/header "Accept" "application/json")))]
+        (is (= 200 (:status response)))))
+
+    (testing "returns not found response when deleting missing page configuration"
+      (let [response (handler (-> (mock/request :delete "/pages/finance-news")
+                                  (mock/header "Accept" "application/json")))]
+        (is (= 404 (:status response)))
         (is (= {:error "Not Found"}
                (-> response
                    parse-body)))))))
