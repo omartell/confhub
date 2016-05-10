@@ -34,4 +34,4 @@
          {:http    [:app]
           :app     [:pages]
           :ragtime [:db]
-          :pages   []}))))
+          :pages   [:db]}))))

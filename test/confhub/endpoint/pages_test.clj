@@ -1,11 +1,18 @@
 (ns confhub.endpoint.pages-test
   (:require [confhub.endpoint.pages :refer [pages-endpoint]]
             [confhub.system :as system]
-            [confhub.config :refer [environ]]
+            [confhub.test-setup :refer [setup-system *system*]]
             [ring.mock.request :as mock]
             [clojure.data.json :as json]
             [com.stuartsierra.component :as component]
-            [clojure.test :refer :all]))
+            [clojure.test :refer :all]
+            [clojure.java.jdbc :as jdbc]))
+
+(def page-config
+  {:page {:id      :index
+          :title   "Most popular news of 2016"
+          :columns 3
+          :ads     2}})
 
 (defn parse-body [response]
   (-> response
@@ -13,20 +20,19 @@
       slurp
       (json/read-str :key-fn keyword)))
 
-(deftest test-numerals-endpoint
-  (let [system  (-> (system/new-system environ)
-                    (dissoc :http)
-                    component/start)
-        handler (-> system :app :handler)]
+(defn create-page-config [handler page-config]
+  (handler (-> (mock/request :post "/pages")
+               (mock/header "Content-Type" "application/json")
+               (mock/header "Accept" "application/json")
+               (mock/body (json/write-str page-config)))))
+
+(use-fixtures :once setup-system)
+
+(deftest test-pages-endpoint
+  (let [handler (-> *system* :app :handler)]
 
     (testing "returns a successful representation when the number can be translated"
-      (let [response (handler (-> (mock/request :post "/pages?zoo=1")
-                                  (mock/header "Content-Type" "application/json")
-                                  (mock/header "Accept" "application/json")
-                                  (mock/body (json/write-str {:page {:id      :index
-                                                                     :title   "Most popular news of 2016"
-                                                                     :columns 3
-                                                                     :ads     2}}))))]
+      (let [response (create-page-config handler page-config)]
         (is (= 201 (:status response)))
         (is (= {:id      "index"
                 :columns 3
@@ -36,13 +42,26 @@
                    parse-body
                    :page)))))
 
+    (testing "returns a response of a previously created page configuration"
+      (create-page-config handler (assoc-in page-config [:page :id] "top-news"))
+
+      (let [response (handler (-> (mock/request :get "/pages/top-news")
+                                  (mock/header "Accept" "application/json")))]
+        (is (= 200 (:status response)))
+        (is (= {:id "top-news"
+                :columns 3
+                :ads 2
+                :title "Most popular news of 2016"}
+               (-> response
+                   parse-body
+                   :page)))))
+
     (testing "returns a not found response when the config does not exist"
-      (let [response (handler (-> (mock/request :post "/pages/top-news")
+      (let [response (handler (-> (mock/request :get "/pages/old-news")
                                   (mock/header "Accept" "application/json")))]
         (is (= 404 (:status response)))
-        (is (= "application/json; charset=utf-8" (-> response :headers (get "Content-Type"))))
+        (is (= "application/json; charset=utf-8"
+               (-> response :headers (get "Content-Type"))))
         (is (= {:error "Not Found"}
                (-> response
-                   parse-body)))))
-
-    (component/stop system)))
+                   parse-body)))))))
