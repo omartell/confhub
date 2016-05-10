@@ -1,32 +1,20 @@
 <!DOCTYPE html>
 <html lang="en" class="welcome">
   <head>
-    <title>Welcome to Duct</title>
-    <link rel="stylesheet" href="/assets/normalize.css/normalize.css">
+    <title>Configuration Hub</title>
     <link rel="stylesheet" href="/css/site.css">
   </head>
   <body>
-    <h1>Welcome to <span class="outer"><span class="inner">Duct</span></span></h1>
+    <h1>Configuration Hub</span></h1>
     <div class="intro">
-      <p>Congratulations! Your project <span class="project-name">confhub</span> is
-        ready and running.</p>
-      <p>This is a static welcome page located at <code>resources/confhub/index.html</code>
-        in the project directory. Remove or replace it when you start developing.
-        If you remove the index page entirely, be sure to change the <code>:aliases</code>
-        map in <code>confhub.system/base-config</code>.
+      <p>Service to store and serve page configuration files</p>
     </div>
     <div class="profiles">
-      <h2>Template profiles used:</h2>
+      <h2>Usage:</h2>
       <dl>
-        <dt>+example</dt>
-        <dd>Adds an example endpoint at <a href="/example">/example</a>.</dd>
-        <dt>+heroku</dt>
-        <dd>Adds files and middleware for deploying to
-          <a href="https://www.heroku.com/">Heroku</a>.</dd>
-        <dt>+site</dt>
-        <dd>Adds middleware and configuration suited for a user-facing website.</dd>
+        <dt>Create a page configuration file</dt>
+        <dd>curl -H "Accept: application/json" -H "Content-Type: application/json" -X POST -d '{"page": {"foo":"bar"}}' localhost:3000/page</dd>
       </dl>
     </div>
-    
   </body>
 </html>
