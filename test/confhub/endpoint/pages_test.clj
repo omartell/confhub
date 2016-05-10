@@ -56,6 +56,13 @@
                    parse-body
                    :page)))))
 
+    (testing "returns validation errors when there is missing data in the config"
+      (let [response (create-page-config handler (assoc-in page-config [:page :id] nil))]
+        (is (= 422 (:status response)))
+        (is (= {:error "Invalid data"}
+               (-> response
+                   parse-body)))))
+
     (testing "returns a not found response when the config does not exist"
       (let [response (handler (-> (mock/request :get "/pages/old-news")
                                   (mock/header "Accept" "application/json")))]
