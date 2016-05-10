@@ -6,6 +6,7 @@
             [duct.component.handler :refer [handler-component]]
             [duct.component.ragtime :refer [ragtime]]
             [duct.component.hikaricp :refer [hikaricp]]
+            [ring.middleware.resource :refer [wrap-resource]]
             [duct.middleware.not-found :refer [wrap-not-found]]
             [duct.middleware.route-aliases :refer [wrap-route-aliases]]
             [meta-merge.core :refer [meta-merge]]
@@ -14,9 +15,9 @@
 
 (def base-config
   {:app {:middleware     [[wrap-restful-format :restful-format]
-                          [wrap-not-found :not-found]
+                          [wrap-resource :resources]
                           [wrap-route-aliases :aliases]]
-         :not-found  "Resource Not Found"
+         :resources   "confhub/public"
          :restful-format {:formats [:json-kw]}
          :aliases        {"/" "/index.html"}}
    :ragtime {:resource-path "confhub/migrations"}})
