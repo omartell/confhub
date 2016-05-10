@@ -1,34 +1,36 @@
 (ns confhub.system
   (:require [clojure.java.io :as io]
             [com.stuartsierra.component :as component]
+            [confhub.endpoint.pages :refer [pages-endpoint]]
             [duct.component.endpoint :refer [endpoint-component]]
             [duct.component.handler :refer [handler-component]]
+            [duct.component.ragtime :refer [ragtime]]
+            [duct.component.hikaricp :refer [hikaricp]]
             [duct.middleware.not-found :refer [wrap-not-found]]
             [duct.middleware.route-aliases :refer [wrap-route-aliases]]
             [meta-merge.core :refer [meta-merge]]
             [ring.component.jetty :refer [jetty-server]]
-            [ring.middleware.defaults :refer [wrap-defaults site-defaults]]
-            [ring.middleware.format :refer [wrap-restful-format]]
-            [ring.middleware.webjars :refer [wrap-webjars]]
-            [confhub.endpoint.pages :refer [pages-endpoint]]))
+            [ring.middleware.format :refer [wrap-restful-format]]))
 
 (def base-config
-  {:app {:middleware [[wrap-not-found :not-found]
-                      [wrap-restful-format]
-                      [wrap-webjars]
-                      [wrap-defaults :defaults]
-                      [wrap-route-aliases :aliases]]
-         :not-found  (io/resource "confhub/errors/404.html")
-         :defaults   (meta-merge site-defaults {:static {:resources "confhub/public"}})
-         :aliases    {"/" "/index.html"}}})
+  {:app {:middleware     [[wrap-restful-format :restful-format]
+                          [wrap-not-found :not-found]
+                          [wrap-route-aliases :aliases]]
+         :not-found  "Resource Not Found"
+         :restful-format {:formats [:json-kw]}
+         :aliases        {"/" "/index.html"}}
+   :ragtime {:resource-path "confhub/migrations"}})
 
 (defn new-system [config]
   (let [config (meta-merge base-config config)]
     (-> (component/system-map
          :app  (handler-component (:app config))
          :http (jetty-server (:http config))
-         :pages (endpoint-component pages-endpoint))
+         :pages (endpoint-component pages-endpoint)
+         :db   (hikaricp (:db config))
+         :ragtime (ragtime (:ragtime config)))
         (component/system-using
-         {:http [:app]
-          :app  [:pages]
-          :pages []}))))
+         {:http    [:app]
+          :app     [:pages]
+          :ragtime [:db]
+          :pages   []}))))

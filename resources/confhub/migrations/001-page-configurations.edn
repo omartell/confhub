@@ -1,0 +1,8 @@
+{:up   ["CREATE TABLE page_configurations (
+           id bigserial primary key,
+           page_id varchar(255),
+           configuration json,
+           created_at timestamp without time zone default (now() at time zone 'utc')
+        );
+        CREATE UNIQUE INDEX index_page_configurations_on_page_id ON page_configurations (page_id);"]
+ :down ["DROP TABLE page_configurations;"]}

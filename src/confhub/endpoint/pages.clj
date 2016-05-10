@@ -1,7 +1,8 @@
 (ns confhub.endpoint.pages
   (:require [compojure.core :refer :all]
-            [ring.util.response :refer [response]]))
+            [ring.util.response :refer [response status]]))
 
 (defn pages-endpoint [config]
-  (POST "/pages" {{page :page :as params} :params :as request}
-    (response {:id "foo"})))
+  (POST "/pages" {{page :page} :params}
+        (-> (response {:page page})
+            (status 201))))
