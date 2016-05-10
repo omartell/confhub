@@ -27,7 +27,9 @@
   :main ^:skip-aot confhub.main
   :uberjar-name "confhub-standalone.jar"
   :target-path "target/%s/"
-  :aliases {"gen"   ["generate"]
+  :aliases {"migrate"  ["run" "-m" "user/start-system-and-migrate"]
+            "rollback" ["run" "-m" "user/start-system-and-rollback"]
+            "gen"   ["generate"]
             "setup" ["do" ["generate" "locals"]]
             "deploy" ["do"
                       ["vcs" "assert-committed"]
@@ -38,12 +40,21 @@
    :uberjar {:aot :all}
    :profiles/dev  {}
    :profiles/test {}
-   :project/dev   {:dependencies [[org.clojure/data.json "0.2.6"]
+   :project/dev   {:env {:database-url "postgres://localhost/confhub_development"
+                         :port "3000"}
+                   :dependencies [[org.clojure/data.json "0.2.6"]
                                   [reloaded.repl "0.2.1"]
                                   [org.clojure/tools.namespace "0.2.11"]
                                   [org.clojure/tools.nrepl "0.2.12"]
                                   [eftest "0.1.1"]]
                    :source-paths ["dev"]
-                   :repl-options {:init-ns user}
-                   :env {:port "3000"}}
-   :project/test  {}})
+                   :repl-options {:init-ns user}}
+   :project/test  {:env {:database-url "postgres://localhost/confhub_test"
+                         :port "3000"}
+                   :dependencies [[org.clojure/data.json "0.2.6"]
+                                  [reloaded.repl "0.2.1"]
+                                  [org.clojure/tools.namespace "0.2.11"]
+                                  [org.clojure/tools.nrepl "0.2.12"]
+                                  [eftest "0.1.1"]]
+                   :source-paths ["dev"]
+                   :repl-options {:init-ns user}}})

@@ -29,12 +29,25 @@
 (defn test []
   (eftest/run-tests (eftest/find-tests "test") {:multithread? false}))
 
-(defn migrate []
-  (-> system :ragtime ragtime/reload ragtime/migrate))
+(defn migrate
+  ([] (migrate system))
+  ([s] (-> s :ragtime ragtime/reload ragtime/migrate)))
 
 (defn rollback
-  ([]  (rollback 1))
-  ([x] (-> system :ragtime ragtime/reload (ragtime/rollback x))))
+  ([]  (rollback system 1))
+  ([s x] (-> s :ragtime ragtime/reload (ragtime/rollback x))))
+
+(defn start-system-and-migrate []
+  (let [s (-> (new-system)
+              (dissoc :http)
+              (component/start))]
+    (migrate s)))
+
+(defn start-system-and-rollback []
+  (let [s (-> (new-system)
+              (dissoc :http)
+              (component/start))]
+    (rollback s 1)))
 
 (when (io/resource "local.clj")
   (load "local"))
