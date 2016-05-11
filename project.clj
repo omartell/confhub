@@ -40,7 +40,8 @@
    :profiles/dev  {}
    :profiles/test {}
    :project/dev   {:env {:database-url "postgres://localhost/confhub_development"
-                         :port "3000"}
+                         :port "3000"
+                         :host "localhost:3000"}
                    :dependencies [[reloaded.repl "0.2.1"]
                                   [org.clojure/tools.namespace "0.2.11"]
                                   [org.clojure/tools.nrepl "0.2.12"]
@@ -48,7 +49,8 @@
                    :source-paths ["dev"]
                    :repl-options {:init-ns user}}
    :project/test  {:env {:database-url "postgres://localhost/confhub_test"
-                         :port "3000"}
+                         :port "3000"
+                         :host "localhost:3000"}
                    :dependencies [[reloaded.repl "0.2.1"]
                                   [org.clojure/tools.namespace "0.2.11"]
                                   [org.clojure/tools.nrepl "0.2.12"]

@@ -1,6 +1,7 @@
 (ns confhub.endpoint.pages-test
   (:require [confhub.endpoint.pages :refer [pages-endpoint]]
             [confhub.system :as system]
+            [confhub.config :refer [environ]]
             [confhub.test-setup :refer [setup-system *system*]]
             [ring.mock.request :as mock]
             [clojure.data.json :as json]
@@ -8,40 +9,42 @@
             [clojure.test :refer :all]
             [clojure.java.jdbc :as jdbc]))
 
+(use-fixtures :once setup-system)
+
 (def page-config
   {:page {:id      :index
           :title   "Most popular news of 2016"
           :columns 3
           :ads     2}})
 
-(defn parse-body [response]
-  (-> response
-      :body
-      slurp
-      (json/read-str :key-fn keyword)))
+(defn parse-body [body]
+  (some-> body
+          slurp
+          (json/read-str :key-fn keyword)))
 
 (defn create-page-config [handler page-config]
-  (handler (-> (mock/request :post "/pages")
-               (mock/header "Content-Type" "application/json")
-               (mock/header "Accept" "application/json")
-               (mock/body (json/write-str page-config)))))
+  (-> (handler (-> (mock/request :post "/pages")
+                   (mock/header "Content-Type" "application/json")
+                   (mock/header "Accept" "application/json")
+                   (mock/body (json/write-str page-config))))
+      (update :body parse-body)))
 
 (defn get-page-config [handler id]
-  (handler (-> (mock/request :get (str "/pages/" id))
-               (mock/header "Accept" "application/json"))))
+  (-> (handler (-> (mock/request :get (str "/pages/" id))
+                   (mock/header "Accept" "application/json")))
+      (update :body parse-body)))
 
 (defn update-page-config [handler id page-config]
-  (handler (-> (mock/request :put (str "/pages/" id))
-               (mock/header "Content-Type" "application/json")
-               (mock/header "Accept" "application/json")
-               (mock/body (json/write-str page-config)))))
+  (-> (handler (-> (mock/request :put (str "/pages/" id))
+                   (mock/header "Content-Type" "application/json")
+                   (mock/header "Accept" "application/json")
+                   (mock/body (json/write-str page-config))))
+      (update :body parse-body)))
 
 (defn delete-page-config [handler id]
-  (handler (-> (mock/request :delete "/pages/breaking-news")
-               (mock/header "Accept" "application/json"))))
-
-
-(use-fixtures :once setup-system)
+  (-> (handler (-> (mock/request :delete "/pages/breaking-news")
+                   (mock/header "Accept" "application/json")))
+      (update :body parse-body)))
 
 (deftest create-page-config-endpoint-test
   (let [handler (-> *system* :app :handler)]
@@ -52,16 +55,15 @@
                 :columns 3
                 :ads     2
                 :title   "Most popular news of 2016"}
-               (-> response
-                   parse-body
-                   :page)))))
+               (-> response :body :page)))
+        (is (= {:self "http://localhost:3000/pages/index"}
+               (-> response :body :links)))))
 
     (testing "returns an unsuccessful response when there is missing data in the payload"
       (let [response (create-page-config handler (assoc-in page-config [:page :id] nil))]
         (is (= 422 (:status response)))
         (is (= {:error "Invalid data"}
-               (-> response
-                   parse-body)))))))
+               (-> response :body)))))))
 
 (deftest get-page-config-test
   (let [handler (-> *system* :app :handler)]
@@ -74,16 +76,15 @@
                 :columns 3
                 :ads 2
                 :title "Most popular news of 2016"}
-               (-> response
-                   parse-body
-                   :page)))))
+               (-> response :body :page)))
+        (is (= {:self "http://localhost:3000/pages/top-news"}
+               (-> response :body :links)))))
 
     (testing "returns a not found response when the page config does not exist"
       (let [response (get-page-config handler "not-found-news")]
         (is (= 404 (:status response)))
         (is (= {:error "Not Found"}
-               (-> response
-                   parse-body)))))))
+               (-> response :body)))))))
 
 (deftest delete-page-config-test
   (let [handler (-> *system* :app :handler)]
@@ -91,14 +92,14 @@
       (create-page-config handler (assoc-in page-config [:page :id] "breaking-news"))
 
       (let [response (delete-page-config handler "breaking-news")]
-        (is (= 200 (:status response)))))
+        (is (= 200 (:status response)))
+        (is (= {} (-> response :body)))))
 
     (testing "returns a not found response when the page config to be deleted does not exist"
       (let [response (delete-page-config handler "not-found-news")]
         (is (= 404 (:status response)))
         (is (= {:error "Not Found"}
-               (-> response
-                   parse-body)))))))
+               (-> response :body)))))))
 
 (deftest update-page-config-test
   (let [handler (-> *system* :app :handler)]
@@ -108,7 +109,9 @@
                                          "sports-news"
                                          {:page {:id    "sports-news"
                                                  :title "The best sporting events of 2016"}})]
-        (is (= 200 (:status response)))))
+        (is (= 200 (:status response)))
+        (is (= {:self "http://localhost:3000/pages/sports-news"}
+               (-> response :body :links))) ))
 
     (testing "returns a successful response when the page config was updated with a new id"
       (create-page-config handler {:page {:id "weather-news" :title "Best places to visit in 2016"}})
@@ -117,9 +120,11 @@
                                          {:page {:id    "travel-news"
                                                  :title "The best sporting events of 2016"}})]
         (is (= 200 (:status response)))
+        (is (= {:self "http://localhost:3000/pages/travel-news"}
+               (-> response :body :links)))
         (is (= {:id "travel-news", :title "The best sporting events of 2016"}
                (-> (get-page-config handler "travel-news")
-                   parse-body
+                   :body
                    :page)))))
 
     (testing "returns a not found response when the page config does not exist"
@@ -129,5 +134,4 @@
                                                  :title "Celebrities gossips"}})]
         (is (= 404 (:status response)))
         (is (= {:error "Not Found"}
-               (-> response
-                   parse-body)))))))
+               (-> response :body)))))))
