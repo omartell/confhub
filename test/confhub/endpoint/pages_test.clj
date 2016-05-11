@@ -28,10 +28,10 @@
 
 (use-fixtures :once setup-system)
 
-(deftest test-pages-endpoint
+(deftest test-crate-page-config-endpoint
   (let [handler (-> *system* :app :handler)]
 
-    (testing "returns a successful representation when the number can be translated"
+    (testing "returns a successful response when the page config was created"
       (let [response (create-page-config handler page-config)]
         (is (= 201 (:status response)))
         (is (= {:id      "index"
@@ -42,7 +42,14 @@
                    parse-body
                    :page)))))
 
-    (testing "returns a response of a previously created page configuration"
+    (testing "returns an unsuccessful response when there is missing data in the page config"
+      (let [response (create-page-config handler (assoc-in page-config [:page :id] nil))]
+        (is (= 422 (:status response)))
+        (is (= {:error "Invalid data"}
+               (-> response
+                   parse-body)))))
+
+    (testing "returns a sucessful response of an existing page config"
       (create-page-config handler (assoc-in page-config [:page :id] "top-news"))
 
       (let [response (handler (-> (mock/request :get "/pages/top-news")
@@ -56,14 +63,7 @@
                    parse-body
                    :page)))))
 
-    (testing "returns validation errors when there is missing data in the config"
-      (let [response (create-page-config handler (assoc-in page-config [:page :id] nil))]
-        (is (= 422 (:status response)))
-        (is (= {:error "Invalid data"}
-               (-> response
-                   parse-body)))))
-
-    (testing "returns a not found response when the config does not exist"
+    (testing "returns a not found response when the page config does not exist"
       (let [response (handler (-> (mock/request :get "/pages/old-news")
                                   (mock/header "Accept" "application/json")))]
         (is (= 404 (:status response)))
@@ -71,14 +71,14 @@
                (-> response
                    parse-body)))))
 
-    (testing "returns successful response when deleting an existing page configuration"
+    (testing "returns successful response when the page config was deleted"
       (create-page-config handler (assoc-in page-config [:page :id] "breaking-news"))
 
       (let [response (handler (-> (mock/request :delete "/pages/breaking-news")
                                   (mock/header "Accept" "application/json")))]
         (is (= 200 (:status response)))))
 
-    (testing "returns not found response when deleting missing page configuration"
+    (testing "returns a not found response when the page config to be deleted does not exist"
       (let [response (handler (-> (mock/request :delete "/pages/finance-news")
                                   (mock/header "Accept" "application/json")))]
         (is (= 404 (:status response)))
