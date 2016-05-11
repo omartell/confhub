@@ -18,6 +18,13 @@
                 {:page_id (:id page-config)
                  :configuration (map->pgjson page-config)}))
 
+(defn update-page-config [spec existing-id page-config]
+  (jdbc/update! spec
+                :page_configurations
+                {:page_id (:id page-config)
+                 :configuration (map->pgjson page-config)}
+                ["page_id = ?" existing-id]))
+
 (defn delete-page-config [spec id]
   (jdbc/delete! spec :page_configurations ["page_id = ?" id]))
 
