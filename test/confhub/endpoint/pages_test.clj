@@ -59,6 +59,15 @@
         (is (= {:self "http://localhost:3000/pages/index"}
                (-> response :body :links)))))
 
+    (testing "returns an invalid response when the page config already exists"
+      (create-page-config handler (assoc page-config :id "weekly news"))
+
+      (let [response (create-page-config handler
+                                         (assoc page-config
+                                                :id
+                                                "weekly news"))]
+        (is (= 422 (:status response)))))
+
     (testing "returns an unsuccessful response when there is missing data in the payload"
       (let [response (create-page-config handler (assoc-in page-config [:page :id] nil))]
         (is (= 422 (:status response)))

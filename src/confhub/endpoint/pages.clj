@@ -9,7 +9,10 @@
       (status 200)))
 
 (defn links [app-config page-config]
-  {:self (str "http://" (-> app-config :links :host) "/pages/" (:id page-config))})
+  {:self (str "http://"
+              (-> app-config :links :host)
+              "/pages/"
+              (:id page-config))})
 
 (defn created-response [app-config page-config]
   (-> (response {:page page-config
@@ -36,9 +39,11 @@
 
 (defn create-page-config [app-config db-spec page-config]
   (if (valid-page-config? page-config)
-    (do
-      (db/insert-page-config db-spec page-config)
-      (created-response app-config page-config))
+    (try
+        (db/insert-page-config db-spec page-config)
+        (created-response app-config page-config)
+        (catch org.postgresql.util.PSQLException e
+          (invalid-response)))
     (invalid-response)))
 
 (defn update-page-config [app-config db-spec existing-id page-config]
