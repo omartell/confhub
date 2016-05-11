@@ -28,9 +28,8 @@
 
 (use-fixtures :once setup-system)
 
-(deftest test-crate-page-config-endpoint
+(deftest create-page-config-endpoint-test
   (let [handler (-> *system* :app :handler)]
-
     (testing "returns a successful response when the page config was created"
       (let [response (create-page-config handler page-config)]
         (is (= 201 (:status response)))
@@ -42,13 +41,15 @@
                    parse-body
                    :page)))))
 
-    (testing "returns an unsuccessful response when there is missing data in the page config"
+    (testing "returns an unsuccessful response when there is missing data in the payload"
       (let [response (create-page-config handler (assoc-in page-config [:page :id] nil))]
         (is (= 422 (:status response)))
         (is (= {:error "Invalid data"}
                (-> response
-                   parse-body)))))
+                   parse-body)))))))
 
+(deftest get-page-config-test
+  (let [handler (-> *system* :app :handler)]
     (testing "returns a sucessful response of an existing page config"
       (create-page-config handler (assoc-in page-config [:page :id] "top-news"))
 
@@ -69,8 +70,10 @@
         (is (= 404 (:status response)))
         (is (= {:error "Not Found"}
                (-> response
-                   parse-body)))))
+                   parse-body)))))))
 
+(deftest delete-page-config-test
+  (let [handler (-> *system* :app :handler)]
     (testing "returns successful response when the page config was deleted"
       (create-page-config handler (assoc-in page-config [:page :id] "breaking-news"))
 
