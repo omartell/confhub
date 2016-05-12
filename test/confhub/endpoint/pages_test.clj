@@ -120,7 +120,7 @@
                                                  :title "The best sporting events of 2016"}})]
         (is (= 200 (:status response)))
         (is (= {:self "http://localhost:3000/pages/sports-news"}
-               (-> response :body :links))) ))
+               (-> response :body :links)))))
 
     (testing "returns a successful response when the page config was updated with a new id"
       (create-page-config handler {:page {:id "weather-news" :title "Best places to visit in 2016"}})
