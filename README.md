@@ -5,7 +5,7 @@ Simple REST API for page configuration files
 
 ## Usage
 
-The application is currently running on [Heroku](http://heroku.com) http://confhub.herokuapp.com.
+The application is currently running on [Heroku](http://heroku.com) http://confhub.herokuapp.com. See [example](http://confhub.herokuapp.com/pages/breaking-news).
 
 Creating a configuration file:
 
