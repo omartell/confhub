@@ -9,7 +9,7 @@
             [clojure.test :refer :all]
             [clojure.java.jdbc :as jdbc]))
 
-(use-fixtures :once setup-system)
+(use-fixtures :each setup-system)
 
 (def page-config
   {:page {:id      :index
@@ -58,6 +58,13 @@
                (-> response :body :page)))
         (is (= {:self "http://localhost:3000/pages/index"}
                (-> response :body :links)))))
+
+    (testing "returns an invalid response when the payload is not valid JSON"
+      (let [response (handler (-> (mock/request :post "/pages")
+                                  (mock/header "Content-Type" "application/json")
+                                  (mock/header "Accept" "application/json")
+                                  (mock/body "{id:\"editorial\"}")))]
+        (is (= 422 (:status response)))))
 
     (testing "returns an invalid response when the page config already exists"
       (create-page-config handler (assoc page-config :id "weekly news"))

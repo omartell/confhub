@@ -39,11 +39,11 @@
 (defn pages-endpoint [{{db-spec :spec} :db config :endpoint :as system}]
   (routes
    (POST "/pages" {{page :page} :params}
-         (create-page-config config db-spec page))
+     (create-page-config config db-spec page))
    (PUT "/pages/:id" {{page :page :as params} :params}
-        (update-page-config config db-spec (:id params) page))
+     (update-page-config config db-spec (:id params) page))
    (GET "/pages/:id" [id]
-        (get-page-config config db-spec id))
+     (get-page-config config db-spec id))
    (DELETE "/pages/:id" [id]
-           (delete-page-config db-spec id))
+     (delete-page-config db-spec id))
    (not-found (response/not-found))))

@@ -11,10 +11,19 @@
             [duct.middleware.route-aliases :refer [wrap-route-aliases]]
             [meta-merge.core :refer [meta-merge]]
             [ring.component.jetty :refer [jetty-server]]
-            [ring.middleware.format :refer [wrap-restful-format]]))
+            [ring.middleware.format :refer [wrap-restful-format]]
+            [confhub.endpoint.response :as response]))
+
+(defn wrap-parse-json-exception [handler & args]
+  (fn [req]
+    (try
+      (handler req)
+      (catch com.fasterxml.jackson.core.JsonParseException e
+        (response/invalid)))))
 
 (def base-config
   {:app {:middleware     [[wrap-restful-format :restful-format]
+                          [wrap-parse-json-exception]
                           [wrap-resource :resources]
                           [wrap-route-aliases :aliases]]
          :resources   "confhub/public"
