@@ -8,25 +8,25 @@
   (and (not (empty? (:id page-config)))
        (not (empty? (dissoc page-config :id)))))
 
-(defn get-page-config [app-config db-spec id]
+(defn get-page-config [config db-spec id]
   (if-let [page-config (db/find-page-config db-spec id)]
-    (response/success app-config page-config)
+    (response/success config page-config)
     (response/not-found)))
 
-(defn create-page-config [app-config db-spec page-config]
+(defn create-page-config [config db-spec page-config]
   (if (valid-page-config? page-config)
     (try
       (db/insert-page-config db-spec page-config)
-      (response/created app-config page-config)
+      (response/created config page-config)
       (catch org.postgresql.util.PSQLException e
         (response/invalid)))
     (response/invalid)))
 
-(defn update-page-config [app-config db-spec existing-id page-config]
+(defn update-page-config [config db-spec existing-id page-config]
   (if (valid-page-config? page-config)
     (let [result (db/update-page-config db-spec existing-id page-config)]
       (if (> (first result) 0)
-        (response/updated app-config page-config)
+        (response/updated config page-config)
         (response/not-found)))
     (response/invalid)))
 
@@ -36,14 +36,14 @@
       (response/success)
       (response/not-found))))
 
-(defn pages-endpoint [{{db-spec :spec} :db app-config :config :as system}]
+(defn pages-endpoint [{{db-spec :spec} :db config :endpoint :as system}]
   (routes
    (POST "/pages" {{page :page} :params}
-     (create-page-config app-config db-spec page))
+         (create-page-config config db-spec page))
    (PUT "/pages/:id" {{page :page :as params} :params}
-     (update-page-config app-config db-spec (:id params) page))
+        (update-page-config config db-spec (:id params) page))
    (GET "/pages/:id" [id]
-     (get-page-config app-config db-spec id))
+        (get-page-config config db-spec id))
    (DELETE "/pages/:id" [id]
-     (delete-page-config db-spec id))
+           (delete-page-config db-spec id))
    (not-found (response/not-found))))

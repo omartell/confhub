@@ -25,7 +25,7 @@
 (defn new-system [config]
   (let [config (meta-merge base-config config)]
     (-> (component/system-map
-         :config config
+         :endpoint (:endpoint config)
          :app  (handler-component (:app config))
          :http (jetty-server (:http config))
          :pages (endpoint-component pages-endpoint)
@@ -35,4 +35,4 @@
          {:http    [:app]
           :app     [:pages]
           :ragtime [:db]
-          :pages   [:db :config]}))))
+          :pages   [:db :endpoint]}))))
