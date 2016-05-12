@@ -1,0 +1,8 @@
+machine:
+  services:
+    - postgresql
+test:
+  override:
+    - createdb confhub_test
+    - lein with-profile test migrate
+    - lein test
